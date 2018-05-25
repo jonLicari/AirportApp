@@ -1,5 +1,6 @@
 package first.airportapp;
 
+import first.airportapp.R;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.internal.BaseGmsClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -25,14 +27,23 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     SignInButton button;
+    Button signOutButton;
     FirebaseAuth mAuth;
     GoogleSignInClient mGoogleSignInClient;
     private final static int RC_SIGN_IN = 1;
     private static final String TAG = "MainActivity";
+    TextView statusTextView;
+
+    //User data variables
+    String personName;
+    String personGivenName;
+    String personFamilyName;
+    String personEmail;
+    String personId;
+    Uri personPhoto;
 
     //System creates MainActivity
     @Override
@@ -41,6 +52,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         button = (SignInButton)findViewById(R.id.sign_in_button);
         button.setOnClickListener(this);
+        signOutButton = (Button)findViewById(R.id.signOutButton);
+        signOutButton.setOnClickListener(this);
+
+        statusTextView = (TextView) findViewById(R.id.login_status);
 
         //Configure Google Sign in
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -59,13 +74,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStart();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
-            String personName = account.getDisplayName();
-            String personGivenName = account.getGivenName();
-            String personFamilyName = account.getFamilyName();
-            String personEmail = account.getEmail();
-            String personId = account.getId();
-            Uri personPhoto = account.getPhotoUrl();
-
+            personName = account.getDisplayName();
+            personGivenName = account.getGivenName();
+            personFamilyName = account.getFamilyName();
+            personEmail = account.getEmail();
+            personId = account.getId();
+            personPhoto = account.getPhotoUrl();
         }
         //updateUI(account);
     }
@@ -77,13 +91,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 signIn();
                 break;
             case R.id.signOutButton:
-                //signOut();
+                statusTextView.setText((personName + " Signing Out..."));
+                signOut();
+                break;
         }
+    }
+
+    private void signOut() {
+        mGoogleSignInClient.signOut()
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // display sign out message
+                        statusTextView.setText((personName + " Signed Out."));
+                    }
+                });
+        FirebaseAuth.getInstance().signOut();
     }
 
     private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
+        statusTextView.setText(personName + " has signed in.");
     }
 
     @Override
