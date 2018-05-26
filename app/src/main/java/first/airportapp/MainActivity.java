@@ -74,14 +74,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStart();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null) {
-            personName = account.getDisplayName();
-            personGivenName = account.getGivenName();
-            personFamilyName = account.getFamilyName();
-            personEmail = account.getEmail();
-            personId = account.getId();
-            personPhoto = account.getPhotoUrl();
+            statusTextView.setText(personName + " has signed in.");
         }
         //updateUI(account);
+        else {
+            statusTextView.setText("Please sign in.");
+        }
     }
 
     //@Override On button click open Google sign in options
@@ -112,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
-        statusTextView.setText(personName + " has signed in.");
     }
 
     @Override
@@ -129,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } catch (ApiException e) {
                 // Google Sign In failed, update UI
                 Log.w(TAG, "Google sign in failed", e);
+                statusTextView.setText("Google sign in failed.");
             }
         }
     }
@@ -148,8 +146,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            //Snackbar.make(findViewById(R.id.login_msg), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
                             //updateUI(null);
+                            statusTextView.setText("Authentication failed.");
                         }
                     }
                 });
@@ -161,11 +159,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Signed in successfully, show authenticated UI.
             //updateUI(account);
+            personName = account.getDisplayName();
+            personGivenName = account.getGivenName();
+            personFamilyName = account.getFamilyName();
+            personEmail = account.getEmail();
+            personId = account.getId();
+            personPhoto = account.getPhotoUrl();
+            statusTextView.setText((personName + " Signed In."));
+
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
             //updateUI(null);
+            statusTextView.setText(("Sign in failed, try again."));
         }
     }
 
